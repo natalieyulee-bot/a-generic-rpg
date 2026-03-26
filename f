@@ -6,8 +6,9 @@ palm = cv2.CascadeClassifier('/Users/chippedtile/Downloads/palm.xml')
 gesture = 0
 front = cv2.VideoCapture(0) # allows user to choose which webcam is being used
 back = cv2.VideoCapture(1) 
-capture = back # makes webcam 1 the default
+capture = front # makes webcam 0 the default
 pygame.init()
+cv2.namedWindow("Webcam")
 clock = pygame.time.Clock()
 fps = 60
 bottompanel = 300
@@ -130,32 +131,31 @@ while run is True:
         evil.draw()
         pygame.display.update()
         ret, frame = capture.read() # frame will get the next frame in camera, ret checks if true
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # converts BGR, which cv2 reads in to grayscale
-
+        if ret:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # converts BGR, which cv2 reads in to grayscale
+            fisty = fist.detectMultiScale(gray, 1.3, 6)
+            palmy = palm.detectMultiScale(gray, 1.3, 6)
+            for (x1, y1, w1, h1) in fisty:
+                cv2.rectangle(frame, (x1, y1), (x1+w1, y1+h1), (255, 0, 0), 5) # creates rectangle around detected object (fist), makes colour in accordance to bgr, pixel thickness (5)
+                gesture = 1
+                for (x1, y1, w1, h1) in palmy:
+                    cv2.rectangle(frame, (x1, y1), (x1+w1, y1+h1), (0, 255, 0), 5)
+                    gesture = 3
+            for (x1, y1, w1, h1) in palmy:
+                cv2.rectangle(frame, (x1, y1), (x1+w1, y1+h1), (0, 255, 0), 5)
+                gesture = 2
+                for (x1, y1, w1, h1) in fisty:
+                    cv2.rectangle(frame, (x1, y1), (x1+w1, y1+h1), (0, 255, 0), 5)
+                    gesture = 3
+            cv2.imshow("Webcam",frame)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
         key = cv2.waitKey(1) # checks if user presses a key
-        fisty = fist.detectMultiScale(frame, 1.3, 6)
-        palmy = palm.detectMultiScale(frame, 1.3, 6)
-
-        for (x1, y1, w1, h1) in fisty:
-            cv2.rectangle(frame, (x1, y1), (x1+w1, y1+h1), (255, 0, 0), 5) # creates rectangle around detected object (fist), makes colour in accordance to bgr, pixel thickness (5)
-            gesture = 1
-            for (x1, y1, w1, h1) in palmy:
-                cv2.rectangle(frame, (x1, y1), (x1+w1, y1+h1), (0, 255, 0), 5)
-                gesture = 3
-        for (x1, y1, w1, h1) in palmy:
-            cv2.rectangle(frame, (x1, y1), (x1+w1, y1+h1), (0, 255, 0), 5)
-            gesture = 2
-            for (x1, y1, w1, h1) in fisty:
-                cv2.rectangle(frame, (x1, y1), (x1+w1, y1+h1), (0, 255, 0), 5)
-                gesture = 3
         if key == ord("b"):
             capture = back # changes cam to webcam 1
         elif key == ord("f"):
             capture = front # changes cam to webcam 0
-        cv2.imshow(" ",frame)
         #player action
         if current_man > total_man:
             current_man = 1
@@ -196,4 +196,5 @@ while run is True:
                     game_over = 1
 
 
+cv2.destroyAllWindows()
 pygame.quit
